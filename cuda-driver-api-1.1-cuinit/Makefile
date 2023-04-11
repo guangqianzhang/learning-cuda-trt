@@ -5,12 +5,14 @@ workdir   := workspace
 srcdir    := src
 objdir    := objs
 stdcpp    := c++11
-cuda_home := ${@CUDA_HOME}
-syslib    := ${@SYS_LIB}
+cuda_home :=/usr/local/cuda-11.4/
+syslib    := /usr/lib
 cuda_arch := 
 nvcc      := $(cuda_home)/bin/nvcc -ccbin=$(cc)
 
-
+# $(info ${@CUDA_HOME})
+# @echo cuda_home: $(cuda_home)
+@echo CUDA_HOME: $(CUDA_HOME)
 # 定义cpp的路径查找和依赖项mk文件
 cpp_srcs := $(shell find $(srcdir) -name "*.cpp")
 cpp_objs := $(cpp_srcs:.cpp=.cpp.o)
@@ -35,7 +37,8 @@ link_librarys  := $(link_cuda) $(link_tensorRT) $(link_sys)
 include_paths := src              \
     $(cuda_home)/include/cuda     \
 	$(cuda_home)/include/tensorRT \
-	$(cuda_home)/include/protobuf
+	$(cuda_home)/include/protobuf\
+	$(cuda_home)/targets/aarch64-linux/include
 
 # 定义库文件路径，只需要写路径，不需要写-L
 library_paths := $(cuda_home)/lib64 $(syslib)
@@ -54,8 +57,8 @@ link_librarys := $(foreach item,$(link_librarys),-l$(item))
 # 如果是其他显卡，请修改-gencode=arch=compute_75,code=sm_75为对应显卡的能力
 # 显卡对应的号码参考这里：https://developer.nvidia.com/zh-cn/cuda-gpus#compute
 # 如果是 jetson nano，提示找不到-m64指令，请删掉 -m64选项。不影响结果
-cpp_compile_flags := -std=$(stdcpp) -w -g -O0 -m64 -fPIC -fopenmp -pthread
-cu_compile_flags  := -std=$(stdcpp) -w -g -O0 -m64 $(cuda_arch) -Xcompiler "$(cpp_compile_flags)"
+cpp_compile_flags := -std=$(stdcpp) -w -g -O0  -fPIC -fopenmp -pthread
+cu_compile_flags  := -std=$(stdcpp) -w -g -O0  $(cuda_arch) -Xcompiler "$(cpp_compile_flags)"
 link_flags        := -pthread -fopenmp -Wl,-rpath='$$ORIGIN'
 
 cpp_compile_flags += $(include_paths)
